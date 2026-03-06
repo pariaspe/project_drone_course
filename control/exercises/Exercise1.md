@@ -82,17 +82,28 @@ Code goal: complete the circuit by passing through the gates.
 
 Choose one of these two paths:
 
-- Python: complete the template in  `drone_controller.py`.
-- C++: complete the template in `drone_course_ws/src/exercise_1` (package `exercise_1`).
+- Python: complete the templates in  `python_interface/exercise_1`.
+- C++: complete the templates in `drone_course_ws/src/exercise_1` (package `exercise_1`).
+
+The implementation of the final node is divided into two exercises.
+
+#### Exercise 1.1
 
 Minimum node tasks:
 
-1. Ask the gates position by the service.
-2. Call the service to set the control mode to position.
-3. Publish position references to `/drone0/motion_reference/pose` to guide the drone through the gates.
-4. Read the estimated pose to verify tracking.
+1. Publish position references to `/drone0/motion_reference/pose` to guide the drone through the gates.
+2. Read the estimated pose to verify tracking.
 
-The template already includes a skeleton; complete the sections marked in comments with `TODO`.
+The template already includes a skeleton; complete the sections marked in comments with `TODO`. Make sure the `CONTROL MODE SERVICE CALL` section in `config/initialize.bash` is uncommented.
+
+#### Exercise 1.2
+
+Minimum node tasks:
+
+1. Create a client for the `RequestPath` service.
+2. Send a request to the service and process the path information from the response message.
+
+The template already includes a skeleton; complete the sections marked in comments with `TODO`. Comment out the `CONTROL MODE SERVICE CALL` section in `config/initialize.bash` so that your node is responsible for the service call.
 
 ## Running your node
 

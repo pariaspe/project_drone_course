@@ -49,6 +49,7 @@ Get the gate positions from the provided path service and build an ordered list 
 
 Create a continuous trajectory from the gate waypoints. You can use any valid method, for example:
 
+- pure pursuit
 - cubic or quintic interpolation,
 - spline-based trajectory,
 - waypoint smoothing with heading continuity.

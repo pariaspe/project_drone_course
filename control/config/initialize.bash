@@ -6,6 +6,7 @@ ros2 service call /drone0/set_offboard_mode std_srvs/srv/SetBool "data: true"
 
 ros2 service call /drone0/platform_takeoff std_srvs/srv/SetBool "data: true"
 
+## CONTROL MODE SERVICE CALL
 # ros2 service call /drone0/controller/set_control_mode as2_msgs/srv/SetControlMode "control_mode:
 #   header:
 #     stamp:

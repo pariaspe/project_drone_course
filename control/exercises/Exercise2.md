@@ -91,11 +91,9 @@ Choose one of these two paths:
 
 Minimum node tasks:
 
-1. Request the gate path from the path service.
-2. Call the control-mode service and set `SPEED` + `YAW_SPEED`.
-3. Compute speed commands from position error (at least P control).
-4. Add I and D terms to improve tracking performance.
-5. Publish `TwistStamped` commands to `/drone0/motion_reference/twist`.
+1. Compute speed commands from position error (at least P control).
+2. Add I and D terms to improve tracking performance.
+3. Publish `TwistStamped` commands to `/drone0/motion_reference/twist`.
 
 The template already includes a skeleton; complete the sections marked with `TODO`.
 
