@@ -34,11 +34,11 @@ Aerostack2 framework. It handles arming, offboard mode, control mode
 setting, and position commands.
 """
 
-import future
 from as2_msgs.msg import ControlMode
 from as2_msgs.srv import SetControlMode
+from drone_course_msgs.msg import Point
 from drone_course_msgs.srv import RequestPath
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped
 import rclpy
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.node import Node
@@ -70,41 +70,35 @@ class DroneController(Node):
             reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=10
         )
         
+        # Callback group for handling synchronous service calls from timer
         self.callback_group = ReentrantCallbackGroup()
 
         # Subscribers
-        
-        self.pose_sub = self.create_subscription(
-            PoseStamped,
-            '/drone0/self_localization/pose',
-            self.state_pose_callback,
-            best_effort_qos,
-        )
+        # TODO(Exercise 1): Subcribe to localization pose
+        # Subscribe to topic: /drone0/self_localization/pose
+        # Message type: geometry_msgs/msg/PoseStamped (PoseStamped)
+        # Callback: self.state_pose_callback
+        # QoS: best effort
+        self.pose_sub = None
 
         # Publishers
-
-        self.twist_pub = self.create_publisher(
-            TwistStamped, '/drone0/motion_reference/twist', reliable_qos
-        )
-
-        # Service clients
-
-        self.control_mode_client = self.create_client(
-            SetControlMode, '/drone0/controller/set_control_mode', callback_group=self.callback_group
-        )
-
-        self.path_request_client = self.create_client(RequestPath, '/request_path', callback_group=self.callback_group)
-        while not self.path_request_client.service_is_ready():
-            self.get_logger().warn('Path request service is not available')
+        # TODO(Exercise 1): Publish motion reference command
+        # Publish to topic: /drone0/motion_reference/pose
+        # Message type: geometry_msgs/msg/PoseStamped (PoseStamped)
+        # QoS: reliable
+        self.pose_pub = None
 
         # Class variables
         self.state_pose: PoseStamped = PoseStamped()
         self.control_mode_set: bool = False
-        self.path: list[float] = []
+        self.path: list[Point] = [Point(x=4.0, y=0.0, z=2.1), 
+                                  Point(x=11.0, y=0.0, z=2.1), 
+                                  Point(x=11.0, y=5.0, z=2.1), 
+                                  Point(x=4.0, y=5.0, z=2.1)]
         self.path_idx: int = 0
 
-        # Timer at 100Hz (0.01 seconds)
-        self.timer = self.create_timer(0.01, self.run, callback_group=self.callback_group)
+        # Timer at 10Hz (0.1 seconds)
+        self.timer = self.create_timer(0.1, self.run, callback_group=self.callback_group)
 
         self.get_logger().info('Drone Controller Node initialized')
 
@@ -117,84 +111,42 @@ class DroneController(Node):
         self.state_pose = msg
 
     def run(self):
-        """Main control loop.
-
-        Implements the state machine for drone control:
-        1. Arm the drone
-        2. Set offboard mode
-        3. Set control mode to position
-        4. Send motion reference commands
-        5. Monitor drone state
-        """
-        
-        # Request path from service
-        if not len(self.path) > 0:
-            req = RequestPath.Request()
-            response : RequestPath.Response = self.path_request_client.call(req)
-            self.path = response.path
-        
-        # Check if control mode is set, if not, call the service to set it
-        if not self.control_mode_set:
-            self.get_logger().info('Calling control mode service...')
-
-            # Check if service is available
-            if not self.control_mode_client.service_is_ready():
-                self.get_logger().warn('Control mode service is not available')
-                return
-
-            # Generate control mode service request
-            request = SetControlMode.Request()
-            control_mode: ControlMode = ControlMode()
-            control_mode.control_mode = ControlMode.SPEED
-            control_mode.yaw_mode = ControlMode.YAW_SPEED
-            control_mode.reference_frame = ControlMode.LOCAL_ENU_FRAME
-            request.control_mode = control_mode
-
-            response: SetControlMode.Response = self.control_mode_client.call(request)
-            success = response.success
-            if not success:
-                self.get_logger().warn('Failed to set control mode')
-                return
-            self.get_logger().info('Control mode set successfully')
-            self.control_mode_set = True
+        """Main control loop."""
 
         # Desired position reference
         position_ref = self.path[self.path_idx]
-        position_ref = (position_ref.x, position_ref.y, position_ref.z)
+
+        # Generate motion reference command
+        position_msg = PoseStamped()
+        position_msg.header.stamp = self.get_clock().now().to_msg()
+        position_msg.header.frame_id = 'earth'
+        position_msg.pose.position.x = position_ref.x
+        position_msg.pose.position.y = position_ref.y
+        position_msg.pose.position.z = position_ref.z
+        position_msg.pose.orientation.w = 1.0  # Neutral orientation
+        position_msg.pose.orientation.x = 0.0
+        position_msg.pose.orientation.y = 0.0
+        position_msg.pose.orientation.z = 0.0
 
         # Read current drone state
         current_x = self.state_pose.pose.position.x
         current_y = self.state_pose.pose.position.y
         current_z = self.state_pose.pose.position.z
 
-        position_error_x = position_ref[0] - current_x
-        position_error_y = position_ref[1] - current_y
-        position_error_z = position_ref[2] - current_z
+        position_error_x = position_ref.x - current_x
+        position_error_y = position_ref.y - current_y
+        position_error_z = position_ref.z - current_z
         position_error = (position_error_x**2 + position_error_y**2 + position_error_z**2) ** 0.5
 
-        # TODO(Exercise 2):
-        # Generate and publish velocity commands
-        
-        velocity_command_x = 0.0
-        velocity_command_y = 0.0
-        velocity_command_z = 0.0    
-        
-        twist_msg = TwistStamped()
-        twist_msg.header.stamp = self.get_clock().now().to_msg()
-        twist_msg.header.frame_id = 'earth'
-        twist_msg.twist.linear.x = velocity_command_x
-        twist_msg.twist.linear.y = velocity_command_y
-        twist_msg.twist.linear.z = velocity_command_z
-        twist_msg.twist.angular.x = 0.0
-        twist_msg.twist.angular.y = 0.0
-        twist_msg.twist.angular.z = 0.0
-        self.twist_pub.publish(twist_msg)
+        # Publish motion reference command
+        # TODO(Exercise 1): Publish the generated motion reference command to /drone0/motion_reference/pose
 
         if position_error < 0.2:
             self.get_logger().info(
                 'Drone has reached the target position', throttle_duration_sec=1.0
             )
-            self.path_idx = (self.path_idx + 1) % len(self.path)
+            # TODO(Exercise 1): Update self.path_idx to move to the next position in the PATH list
+            self.path_idx = 1
 
 
 def main(args=None):

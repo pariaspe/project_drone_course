@@ -27,12 +27,12 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 
-#include <exercise_2/exercise_2.hpp>
+#include <exercise_1/exercise_1_2.hpp>
 
 namespace drone_course
 {
 
-DroneCourseExercise2::DroneCourseExercise2(
+DroneCourseExercise1_2::DroneCourseExercise1_2(
   const std::string & node_name,
   const rclcpp::NodeOptions & options)
 : rclcpp::Node(node_name, options)
@@ -48,35 +48,40 @@ DroneCourseExercise2::DroneCourseExercise2(
 
   pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
     "/drone0/self_localization/pose", best_effort_qos,
-    std::bind(&DroneCourseExercise2::state_subscription_callback, this, std::placeholders::_1));
+    std::bind(&DroneCourseExercise1_2::state_subscription_callback, this, std::placeholders::_1));
 
   // Publishers
 
-  vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(
-    "/drone0/motion_reference/twist", reliable_qos);
+  pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+    "/drone0/motion_reference/pose", reliable_qos);
 
   // Services clients
 
+  // Control Mode Service Client
   control_mode_service_client_ = this->create_client<as2_msgs::srv::SetControlMode>(
     "/drone0/controller/set_control_mode", rmw_qos_profile_services_default, callback_group_);
 
-  path_service_client_ = this->create_client<drone_course_msgs::srv::RequestPath>(
-    "/request_path", rmw_qos_profile_services_default, callback_group_);
+  // Path Service Client
+  // TODO(Exercise 1.2): Create service client to get the path
+  // Create service client for: /request_path
+  // Service type: drone_course_msgs/srv/RequestPath
+  // path_service_client_ = ...
 
   // Timers
   double timer_freq = 100.0;
   timer_ = this->create_wall_timer(
     std::chrono::duration<double>(1.0f / timer_freq),
-    std::bind(&DroneCourseExercise2::timer_callback, this));
+    std::bind(&DroneCourseExercise1_2::timer_callback, this),
+    callback_group_);
 
   dt_ = 1.0f / timer_freq;
 
-  RCLCPP_INFO(this->get_logger(), "DroneCourseExercise2 initialized\n");
+  RCLCPP_INFO(this->get_logger(), "DroneCourseExercise1_2 initialized\n");
 }
 
-DroneCourseExercise2::~DroneCourseExercise2() {}
+DroneCourseExercise1_2::~DroneCourseExercise1_2() {}
 
-void DroneCourseExercise2::control_mode_service_callback(
+void DroneCourseExercise1_2::control_mode_service_callback(
   rclcpp::Client<as2_msgs::srv::SetControlMode>::SharedFuture future)
 {
   auto status = future.wait_for(std::chrono::seconds(1));
@@ -93,34 +98,27 @@ void DroneCourseExercise2::control_mode_service_callback(
   }
 }
 
-void DroneCourseExercise2::path_service_callback(
+void DroneCourseExercise1_2::path_service_callback(
   rclcpp::Client<drone_course_msgs::srv::RequestPath>::SharedFuture future)
 {
   auto status = future.wait_for(std::chrono::seconds(1));
   if (status == std::future_status::ready) {
-    drone_course_msgs::srv::RequestPath::Response::SharedPtr response = future.get();
-    if (response->path.size() > 0) {
-      RCLCPP_INFO(this->get_logger(), "Received path from service");
-      path_ = response->path;
-      path_received_ = true;
-    } else {
-      RCLCPP_INFO(this->get_logger(), "Could not retrieve path from service");
-    }
-  } else {
-    RCLCPP_INFO(this->get_logger(), "Service In-Progress...");
+    // TODO (Exercise 1.2)
+    // Process the service response here
+    RCLCPP_INFO(this->get_logger(), "Service response is ready to be processed!");
   }
 }
 
-
-void DroneCourseExercise2::timer_callback()
+void DroneCourseExercise1_2::timer_callback()
 {
   if (!path_received_) {
     RCLCPP_INFO(this->get_logger(), "Requesting path from service...");
+    // (TODO) Exercise 1.2: Send the request and process the path message
     path_service_request_ = std::make_shared<drone_course_msgs::srv::RequestPath::Request>();
 
-    path_service_client_->async_send_request(
-      path_service_request_, std::bind(
-        &DroneCourseExercise2::path_service_callback, this, std::placeholders::_1));
+    // Uncomment this section to send a request to the path
+    // path_service_client_->async_send_request(path_service_request, std::bind(
+    //   &DroneCourseExercise1_2::path_service_callback, this, std::placeholders::_1));
 
   }
 
@@ -129,25 +127,37 @@ void DroneCourseExercise2::timer_callback()
     RCLCPP_INFO(this->get_logger(), "Calling control mode service...");
     as2_msgs::srv::SetControlMode::Request::SharedPtr control_mode_request =
       std::make_shared<as2_msgs::srv::SetControlMode::Request>();
-    control_mode_request->control_mode.control_mode = as2_msgs::msg::ControlMode::SPEED;
-    control_mode_request->control_mode.yaw_mode = as2_msgs::msg::ControlMode::YAW_SPEED;
+    control_mode_request->control_mode.control_mode = as2_msgs::msg::ControlMode::POSITION;
+    control_mode_request->control_mode.yaw_mode = as2_msgs::msg::ControlMode::YAW_ANGLE;
     control_mode_request->control_mode.reference_frame =
       as2_msgs::msg::ControlMode::LOCAL_ENU_FRAME;
 
     control_mode_service_client_->async_send_request(
       control_mode_request, std::bind(
-        &DroneCourseExercise2::control_mode_service_callback, this, std::placeholders::_1));
+        &DroneCourseExercise1_2::control_mode_service_callback, this, std::placeholders::_1));
   }
 
-  // Desired position reference
   drone_course_msgs::msg::Point position_ref;
-  if (path_.size() > 0) {
+  // Desired position reference
+  if (path_received_) {
     position_ref = path_[path_index_];
   } else {
     position_ref.x = 0.0;
     position_ref.y = 0.0;
     position_ref.z = 1.0;
   }
+
+  // Generate motion reference command
+  geometry_msgs::msg::PoseStamped position_msg;
+  position_msg.header.stamp = this->get_clock()->now();
+  position_msg.header.frame_id = "earth";
+  position_msg.pose.position.x = position_ref.x;
+  position_msg.pose.position.y = position_ref.y;
+  position_msg.pose.position.z = position_ref.z;
+  position_msg.pose.orientation.w = 1.0;  // Neutral orientation
+  position_msg.pose.orientation.x = 0.0;
+  position_msg.pose.orientation.y = 0.0;
+  position_msg.pose.orientation.z = 0.0;
 
   // Read current drone state
   double current_x = state_pose_.pose.position.x;
@@ -161,36 +171,19 @@ void DroneCourseExercise2::timer_callback()
     position_error_x * position_error_x + position_error_y * position_error_y + position_error_z *
     position_error_z);
 
-  // TODO (Exercise 2):
-  // Compute velocity commands for the drone
-  double velocity_x = 0.0;
-  double velocity_y = 0.0;
-  double velocity_z = 0.0;
-
-  // Generate motion reference command
-  geometry_msgs::msg::TwistStamped velocity_msg;
-  velocity_msg.header.stamp = this->get_clock()->now();
-  velocity_msg.header.frame_id = "earth";
-  velocity_msg.twist.linear.x = velocity_x;
-  velocity_msg.twist.linear.y = velocity_y;
-  velocity_msg.twist.linear.z = velocity_z;
-  velocity_msg.twist.angular.x = 0.0;
-  velocity_msg.twist.angular.y = 0.0;
-  velocity_msg.twist.angular.z = 0.0;
-
-  if (vel_pub_) {
-    vel_pub_->publish(velocity_msg);
+  if (pose_pub_) {
+    pose_pub_->publish(position_msg);
   }
 
   if (position_error_norm < 0.2) {
     RCLCPP_INFO(this->get_logger(), "Drone has reach the target position");
     if (path_.size() > 0) {
-      path_index_ = (path_index_ + 1) % (path_.size());
+      path_index_ = (path_index_ + 1) % path_.size();
     }
   }
 }
 
-void DroneCourseExercise2::state_subscription_callback(
+void DroneCourseExercise1_2::state_subscription_callback(
   const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
   state_pose_ = *msg;
