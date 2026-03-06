@@ -27,13 +27,13 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 
-#include <exercise_1/exercise_1.hpp>
+#include <exercise_1/exercise_1_2.hpp>
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  drone_course::DroneCourseExercise1::SharedPtr node =
-    std::make_shared<drone_course::DroneCourseExercise1>();
+  drone_course::DroneCourseExercise1_2::SharedPtr node =
+    std::make_shared<drone_course::DroneCourseExercise1_2>();
   rclcpp::executors::MultiThreadedExecutor executor;
   executor.add_node(node);
   executor.spin();

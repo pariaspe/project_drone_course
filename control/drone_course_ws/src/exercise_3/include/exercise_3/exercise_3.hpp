@@ -27,8 +27,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef EXERCISE_1__EXERCISE_1_HPP_
-#define EXERCISE_1__EXERCISE_1_HPP_
+#ifndef EXERCISE_2__EXERCISE_2_HPP_
+#define EXERCISE_2__EXERCISE_2_HPP_
 
 #include <string>
 #include <chrono>
@@ -39,6 +39,7 @@
 #include "std_msgs/msg/string.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "as2_msgs/srv/set_control_mode.hpp"
 #include "as2_msgs/msg/control_mode.hpp"
 #include "drone_course_msgs/srv/request_path.hpp"
@@ -47,32 +48,32 @@ namespace drone_course
 {
 
 /**
- * @brief Class DroneCourseExercise1
+ * @brief Class DroneCourseExercise2
  */
-class DroneCourseExercise1 : public rclcpp::Node
+class DroneCourseExercise3 : public rclcpp::Node
 {
 public:
   /**
-   * @brief Construct a new DroneCourseExercise1 object
+   * @brief Construct a new DroneCourse object
    *
    * @param node_name Node name
    * @param options Node options
    */
-  explicit DroneCourseExercise1(
-    const std::string & node_name = "drone_course_exercise_1_node",
+  explicit DroneCourseExercise3(
+    const std::string & node_name = "drone_course_exercise_2_node",
     const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
   /**
-   * @brief Destroy the DroneCourseExercise1 object
+   * @brief Destroy the DroneCourseExercise2 object
    */
-  ~DroneCourseExercise1();
+  ~DroneCourseExercise3();
 
 private:
   // Subscribers
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
 
   // Publishers
-  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr vel_pub_;
 
   // Timers
   rclcpp::TimerBase::SharedPtr timer_;
@@ -92,7 +93,10 @@ private:
   int path_index_ = 0;
   double dt_ = 0.01;
 
-  std::array<float, 12> path_ = {};
+  std::vector<drone_course_msgs::msg::Point> path_;
+
+  std::array<float, 3> prev_error_ = {0.0, 0.0, 0.0};
+  std::array<float, 3> integral_error_ = {0.0, 0.0, 0.0};
 
 private:
   // Callbacks Subscribers
@@ -104,6 +108,12 @@ private:
    */
   void state_subscription_callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
 
+  void control_mode_service_callback(
+    rclcpp::Client<as2_msgs::srv::SetControlMode>::SharedFuture future);
+
+  void path_service_callback(
+    rclcpp::Client<drone_course_msgs::srv::RequestPath>::SharedFuture future);
+
   // Callbacks Timers
 
   /**
@@ -113,4 +123,4 @@ private:
 };
 }  // namespace drone_course
 
-#endif  // EXERCISE_1__EXERCISE_1_HPP_
+#endif  // EXERCISE_2__EXERCISE_2_HPP_

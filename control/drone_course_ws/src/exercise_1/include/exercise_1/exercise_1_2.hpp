@@ -27,8 +27,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef EXERCISE_2__EXERCISE_2_HPP_
-#define EXERCISE_2__EXERCISE_2_HPP_
+#ifndef EXERCISE_1__EXERCISE_1_HPP_
+#define EXERCISE_1__EXERCISE_1_HPP_
 
 #include <string>
 #include <chrono>
@@ -39,7 +39,6 @@
 #include "std_msgs/msg/string.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "as2_msgs/srv/set_control_mode.hpp"
 #include "as2_msgs/msg/control_mode.hpp"
 #include "drone_course_msgs/srv/request_path.hpp"
@@ -48,32 +47,32 @@ namespace drone_course
 {
 
 /**
- * @brief Class DroneCourseExercise2
+ * @brief Class DroneCourseExercise1_2
  */
-class DroneCourseExercise2 : public rclcpp::Node
+class DroneCourseExercise1_2 : public rclcpp::Node
 {
 public:
   /**
-   * @brief Construct a new DroneCourse object
+   * @brief Construct a new DroneCourseExercise1 object
    *
    * @param node_name Node name
    * @param options Node options
    */
-  explicit DroneCourseExercise2(
-    const std::string & node_name = "drone_course_exercise_2_node",
+  explicit DroneCourseExercise1_2(
+    const std::string & node_name = "drone_course_exercise_1_node",
     const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
   /**
-   * @brief Destroy the DroneCourseExercise2 object
+   * @brief Destroy the DroneCourseExercise1 object
    */
-  ~DroneCourseExercise2();
+  ~DroneCourseExercise1_2();
 
 private:
   // Subscribers
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
 
   // Publishers
-  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr vel_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
 
   // Timers
   rclcpp::TimerBase::SharedPtr timer_;
@@ -94,9 +93,6 @@ private:
   double dt_ = 0.01;
 
   std::vector<drone_course_msgs::msg::Point> path_;
-
-  std::array<float, 3> prev_error_ = {0.0, 0.0, 0.0};
-  std::array<float, 3> integral_error_ = {0.0, 0.0, 0.0};
 
 private:
   // Callbacks Subscribers
@@ -123,4 +119,4 @@ private:
 };
 }  // namespace drone_course
 
-#endif  // EXERCISE_2__EXERCISE_2_HPP_
+#endif  // EXERCISE_1__EXERCISE_1_HPP_
