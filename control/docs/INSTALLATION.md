@@ -4,7 +4,7 @@ First, clone this repository and initialize the workspace:
 
 ```bash
 cd ~
-git clone https://github.com/cvar-upm-drone-team/project_cvar_upm_drone_course.git
+git clone https://github.com/pariaspe/project_drone_course.git
 ```
 
 You can choose between two setups:
@@ -47,7 +47,7 @@ source /opt/ros/humble/setup.bash
 2. Install workspace dependencies:
 
 ```bash
-cd ~/project_cvar_upm_drone_course/control
+cd ~/project_drone_course/control
 cd drone_course_ws
 sudo rosdep init
 rosdep update
@@ -57,7 +57,7 @@ rosdep install --from-paths src -y --ignore-src
 3. Build workspace:
 
 ```bash
-cd ~/project_cvar_upm_drone_course/control
+cd ~/project_drone_course/control
 cd drone_course_ws
 colcon build --symlink-install
 source install/setup.bash
@@ -66,7 +66,7 @@ source install/setup.bash
 4. (Optional) Add sourcing to `.bashrc`:
 
 ```bash
-echo "source ~/project_cvar_upm_drone_course/control/drone_course_ws/install/setup.bash" >> ~/.bashrc
+echo "source ~/project_drone_course/control/drone_course_ws/install/setup.bash" >> ~/.bashrc
 ```
 
 ## Docker
@@ -86,7 +86,7 @@ Video tutorial:
 1. Navigate to the `docker` directory:
 
 ```bash
-cd ~/project_cvar_upm_drone_course/control
+cd ~/project_drone_course/control
 ```
 
 2. Build the Docker image:
@@ -104,16 +104,7 @@ docker compose up -d
 4. Connect to the container using `docker exec` in new terminal:
 
 ```bash
-docker exec -it project_cvar_upm_drone_course_control bash
-```
-
-5. Build the workspace inside the container:
-
-```bash
-cd ~/project_cvar_upm_drone_course/control
-cd drone_course_ws
-colcon build --symlink-install
-source install/setup.bash
+docker exec -it project_drone_course_control bash
 ```
 
 _Note: You can use [VNC Viewer](https://www.realvnc.com/en/connect/download/viewer/) to connect to the container's desktop environment. The default VNC port is `5901`._
@@ -125,7 +116,7 @@ _Note: You may use `xhost +` to allow the container to access your host's displa
 Go to the control directory:
 
 ```bash
-cd ~/project_cvar_upm_drone_course/control
+cd ~/project_drone_course/control
 ```
 
 ### Launch simulation
