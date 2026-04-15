@@ -1,15 +1,46 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
-"""
-ex2.py
+# Copyright 2026
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#    * Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#
+#    * Redistributions in binary form must reproduce the above copyright
+#      notice, this list of conditions and the following disclaimer in the
+#      documentation and/or other materials provided with the distribution.
+#
+#    * Neither the name of the Universidad Politécnica de Madrid nor the names of its
+#      contributors may be used to endorse or promote products derived from
+#      this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+"""Drone Controller Class.
+
+This module implements an interface for controlling a drone using the
+Aerostack2 framework. It handles arming, offboard mode, control mode
+setting, and speed commands.
 """
 
-from time import sleep
+__authors__ = 'Pedro Arias Pérez'
+
 import rclpy
 from as2_python_api.drone_interface_base import DroneInterfaceBase
 from as2_python_api.modules.motion_reference_handler_module import MotionReferenceHandlerModule
-from geometry_msgs.msg import PoseStamped, TwistStamped
-from drone_course_msgs.msg import Point
+from geometry_msgs.msg import TwistStamped, Point
 
 
 class DummyDrone(DroneInterfaceBase):
@@ -20,8 +51,6 @@ class DummyDrone(DroneInterfaceBase):
         self.send_vel = self.motion_ref_handler.speed.send_speed_command_with_yaw_speed
 
         # Class variables
-        self.state_pose: PoseStamped = PoseStamped()
-        self.control_mode_set: bool = False
         self.path: list[Point] = [Point(x=4.0, y=0.0, z=2.1),
                                   Point(x=11.0, y=0.0, z=2.1),
                                   Point(x=11.0, y=5.0, z=2.1),
@@ -30,16 +59,6 @@ class DummyDrone(DroneInterfaceBase):
 
     def do_mission(self):
         """ Run the mission """
-
-        """Main control loop.
-
-        Implements the state machine for drone control:
-        1. Arm the drone
-        2. Set offboard mode
-        3. Set control mode to position
-        4. Send motion reference commands
-        5. Monitor drone state
-        """
 
         while True:
             # Desired position reference
@@ -58,7 +77,7 @@ class DummyDrone(DroneInterfaceBase):
                               2 + position_error_z**2) ** 0.5
 
             # TODO(Exercise 2):
-            # Generate and publish velocity commands
+            # Calculate and send velocity commands using self.send_vel method
 
             velocity_command_x = 0.0
             velocity_command_y = 0.0
