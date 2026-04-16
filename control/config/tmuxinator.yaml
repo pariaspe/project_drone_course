@@ -2,6 +2,7 @@
 # Input parameters
 use_behaviors   = @settings["behaviors"] == "true"
 platform = @settings["platform"]
+gates_config = @settings["gates_config"]
 
 if platform == "gz"
   use_sim_time = "true"
@@ -103,8 +104,8 @@ windows:
               use_sim_time:=<%= use_sim_time %>
         
         # Gates Publisher
-        - python3 config/gates_static_publisher.py --gates_config config/gates_config.yaml --use_sim_time <%= use_sim_time %>
-        - python3 config/gates_tracker.py --gates_config config/gates_config.yaml --use_sim_time <%= use_sim_time %>
-        
+        - python3 config/gates_static_publisher.py --gates_config <%= gates_config %> --use_sim_time <%= use_sim_time %>
+        - python3 config/gates_tracker.py --gates_config <%= gates_config %> --use_sim_time <%= use_sim_time %>
+
         # Render Camera
         - python3 config/render_camera.py --camera_frame_id /drone0/camera --camera_resolution 10 10 --camera_period 0.1 --use_sim_time <%= use_sim_time %>

@@ -7,14 +7,17 @@ usage() {
     echo "        gz: gazebo"
     echo "      -b: behaviors. Default: False."
     echo "          If True, enables behavior-based control."
+    echo "      -c: gate config file. Default: config/gates_config.yaml"
+    echo ""
 }
 
 # Initialize variables with default values
 platform="ms"
 behaviors="false"
+gates_config="config/gates_config.yaml"
 
 # Arg parser
-while getopts "p:b" opt; do
+while getopts "p:bc:" opt; do
   case ${opt} in
     p )
       platform="${OPTARG}"
@@ -22,21 +25,22 @@ while getopts "p:b" opt; do
     b )
       behaviors="true"
       ;;
+    c )
+      gates_config="${OPTARG}"
+      ;;
     \? )
-      echo "Invalid option: -$OPTARG" >&2
+      echo "Invalid option: -${OPTARG}" >&2
       usage
       exit 1
       ;;
     : )
-      if [[ ! $OPTARG =~ ^[wrt]$ ]]; then
-        echo "Option -$OPTARG requires an argument" >&2
-        usage
-        exit 1
-      fi
+      echo "Option -${OPTARG} requires an argument." >&2
+      usage
+      exit 1
       ;;
   esac
 done
 
 # Launch aerostack2
 source drone_course_ws/install/setup.bash
-eval "tmuxinator start -n drone -p config/tmuxinator.yaml platform=$platform behaviors=$behaviors"
+eval "tmuxinator start -n drone -p config/tmuxinator.yaml platform=$platform behaviors=$behaviors gates_config=$gates_config"
