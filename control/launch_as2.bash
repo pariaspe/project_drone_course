@@ -5,16 +5,22 @@ usage() {
     echo "      -p: platorm. Default: ms. Choices:"
     echo "        ms: multirotor simulator"
     echo "        gz: gazebo"
+    echo "      -b: behaviors. Default: False."
+    echo "          If True, enables behavior-based control."
 }
 
 # Initialize variables with default values
 platform="ms"
+behaviors="false"
 
 # Arg parser
-while getopts "p:" opt; do
+while getopts "p:b" opt; do
   case ${opt} in
     p )
       platform="${OPTARG}"
+      ;;
+    b )
+      behaviors="true"
       ;;
     \? )
       echo "Invalid option: -$OPTARG" >&2
@@ -33,4 +39,4 @@ done
 
 # Launch aerostack2
 source drone_course_ws/install/setup.bash
-eval "tmuxinator start -n drone -p config/tmuxinator.yaml platform=$platform"
+eval "tmuxinator start -n drone -p config/tmuxinator.yaml platform=$platform behaviors=$behaviors"

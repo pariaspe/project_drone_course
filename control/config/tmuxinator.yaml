@@ -1,5 +1,6 @@
 <%
 # Input parameters
+use_behaviors   = @settings["behaviors"] == "true"
 platform = @settings["platform"]
 
 if platform == "gz"
@@ -42,7 +43,9 @@ windows:
       <% end %>
     
       # Initialize platform and takeoff
+      <%- if not use_behaviors %>
         - ./config/initialize.bash
+      <%- end %>
 
   # Basic Robotics Functions
   - BRF:
@@ -64,6 +67,17 @@ windows:
             plugin_config_file:=config/pid_speed_controller.yaml
             plugin_available_modes_config_file:=config/control_modes/available_modes.yaml
 
+  <%- if use_behaviors %>
+  - behaviors:
+      layout:
+      panes:
+        - ros2 launch as2_behaviors_motion motion_behaviors_launch.py
+            namespace:=drone0
+            config_file:=config/config.yaml
+        - ros2 launch as2_behaviors_trajectory_generation generate_polynomial_trajectory_behavior_launch.py
+            namespace:=drone0
+            use_sim_time:=<%= use_sim_time %>
+  <%- end %>
 
   # Mission monitoring
   - mission:
@@ -85,6 +99,7 @@ windows:
               namespace_list:=drone0
               rviz_config:=config/rviz2_config.rviz
               drone_model:=quadrotor_base
+              record_length:=5000
               use_sim_time:=<%= use_sim_time %>
         
         # Gates Publisher
