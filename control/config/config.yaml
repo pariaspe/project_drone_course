@@ -20,9 +20,12 @@
       imu_pub_freq: 100.0  # Hz (default: 100.0)
       odometry_pub_freq: 100.0  # Hz (default: 100.0)
       ground_truth_pub_freq: 100.0  # Hz (default: 60.0)
-      gps_pub_freq: 0.0  # Hz (default: 60.0)
+      gps_pub_freq: 1.0  # Hz (default: 60.0)
       gimbal:
         pub_freq: 0.0  # Hz (default: 1.0)
+      multirotor:
+        imu.accel_noise_var: 0.000001  # (default: 0.0005)
+        imu.gyro_noise_var: 0.00003  # (default: 0.003)
 
   # Motion Controller
   controller_manager:
