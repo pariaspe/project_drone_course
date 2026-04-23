@@ -136,15 +136,6 @@ class DummyDrone(DroneInterfaceBase):
         ax_w, ay_w, az_w = rotate_body_to_world(ax_b, ay_b, az_b)
         az_w -= 9.81
 
-        # Trapezoidal integration using previous accelerations
-        if not hasattr(self, "_prev_acc_w"):
-            self._prev_acc_w = (ax_w, ay_w, az_w)
-
-        ax_avg = 0.5 * (ax_w + self._prev_acc_w[0])
-        ay_avg = 0.5 * (ay_w + self._prev_acc_w[1])
-        az_avg = 0.5 * (az_w + self._prev_acc_w[2])
-        self._prev_acc_w = (ax_w, ay_w, az_w)
-
         # TODO (Exercise 4.1): Prediction step using IMU data.
         # This may involve integrating the IMU measurements over time
         # to update the drone's position and orientation.
@@ -152,8 +143,8 @@ class DummyDrone(DroneInterfaceBase):
 
         self._pos = None
         self._vel = None
-        self._orientation = None
-        self._angular_velocity = None
+        self._orientation = orientation
+        self._angular_velocity = angular_velocity
 
     def __navsatfix_callback(self, msg: NavSatFix):
         """ NavSatFix callback function """
@@ -168,8 +159,10 @@ class DummyDrone(DroneInterfaceBase):
         # Use flat Earth approximation: https://es.mathworks.com/help/aeroblks/llatoflatearth.html
         R = 6378137.0  # Earth radius in meters
 
+        x = longitude
+        y = latitude
         self._gps_measurement = None
-        self._gps_measurement_var = None
+        self._gps_measurement_var = 0.000001
 
     def kalman_like_fusion(self, gps_pos, gps_pos_var):
         """ Kalman-like fusion of IMU and GPS data """
@@ -194,8 +187,7 @@ class DummyDrone(DroneInterfaceBase):
             return
 
         if hasattr(self, "_gps_measurement"):
-            gps_var = 0.000001
-            self.kalman_like_fusion(self._gps_measurement, gps_var)
+            self.kalman_like_fusion(self._gps_measurement, self._gps_measurement_var)
 
         pose.pose.pose.position.x = self._pos[0]
         pose.pose.pose.position.y = self._pos[1]
